@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Заместник ректор BPMN Diagram</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
+        header { text-align: center; margin-bottom: 30px; }
+        .diagram-container {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .upload-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #bpmnCanvas {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ccc;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Заместник ректор BPMN Diagram</h1>
+        <p>Събиране на научна продукция на унверситета
+        </p>
+    </header>
+<div class="diagram-container">
+    <div class="upload-section">
+        <input type="file" id="bpmnUpload" accept=".bpmn,.xml">
+        <label for="bpmnUpload">Upload BPMN Diagram</label>
+    </div>
+    <div id="bpmnCanvas"></div>
+</div>
+<script src="https://unpkg.com/bpmn-js@11.5.0/dist/bpmn-viewer.development.js"></script>
+<script>
+    const bpmnViewer = new BpmnJS({ container: '#bpmnCanvas' });
+
+    document.getElementById('bpmnUpload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            bpmnViewer.importXML(event.target.result, function(err) {
+                if (err) {
+                    alert('Error rendering BPMN diagram.');
+                } else {
+                    bpmnViewer.get('canvas').zoom('fit-viewport');
+                }
+            });
+      
+
+            // Местене с мишката
+            const canvas = bpmnViewer.get('canvas');
+            const containerEl = document.getElementById('bpmnCanvas');
+            let isPanning = false;
+            let lastX = 0, lastY = 0;
+
+            containerEl.style.cursor = 'grab';
+
+            containerEl.addEventListener('mousedown', function(e) {
+                isPanning = true;
+                lastX = e.clientX;
+                lastY = e.clientY;
+                containerEl.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', function(e) {
+                if (!isPanning) return;
+                const dx = e.clientX - lastX;
+                const dy = e.clientY - lastY;
+                lastX = e.clientX;
+                lastY = e.clientY;
+                const viewbox = canvas.viewbox();
+                canvas.viewbox({
+                    x: viewbox.x - dx / viewbox.scale,
+                    y: viewbox.y - dy / viewbox.scale,
+                    width: viewbox.width,
+                    height: viewbox.height,
+                    scale: viewbox.scale
+                });
+            });
+
+            window.addEventListener('mouseup', function() {
+                isPanning = false;
+                containerEl.style.cursor = 'grab';
+            });
+
+
+
+            // Добавяне на контроли за мащабиране
+            let zoomLevel = 1;
+            const controls = document.createElement('div');
+            controls.style.textAlign = 'center';
+            controls.style.margin = '10px 0';
+            controls.innerHTML = `
+                <button id="zoomInBtn">Zoom In</button>
+                <button id="zoomOutBtn">Zoom Out</button>
+                <button id="resetZoomBtn">Reset Zoom</button>
+            `;
+            const container = document.querySelector('.diagram-container');
+            if (!document.getElementById('zoomInBtn')) {
+                container.insertBefore(controls, document.getElementById('bpmnCanvas'));
+            }
+            document.getElementById('zoomInBtn').onclick = function() {
+                zoomLevel = Math.min(zoomLevel + 0.2, 4);
+                bpmnViewer.get('canvas').zoom(zoomLevel);
+            };
+            document.getElementById('zoomOutBtn').onclick = function() {
+                zoomLevel = Math.max(zoomLevel - 0.2, 0.2);
+                bpmnViewer.get('canvas').zoom(zoomLevel);
+            };
+            document.getElementById('resetZoomBtn').onclick = function() {
+                zoomLevel = 1;
+                bpmnViewer.get('canvas').zoom('fit-viewport');
+            };
+        };
+        reader.readAsText(file);
+    });
+</script>
+</body>
+</html>
