@@ -62,21 +62,35 @@
         .catch(() => {
             // No default diagram found, do nothing
         });
-    document.getElementById('bpmnUpload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            bpmnViewer.importXML(event.target.result, function(err) {
-                if (err) {
-                    alert('Error rendering BPMN diagram.');
-                } else {
-                    bpmnViewer.get('canvas').zoom('fit-viewport');
-                }
-            });
-      
+         // Добавяне на контроли за мащабиране
+            let zoomLevel = 1;
+            const controls = document.createElement('div');
+            controls.style.textAlign = 'center';
+            controls.style.margin = '10px 0';
+            controls.innerHTML = `
+                <button id="zoomInBtn">Zoom In</button>
+                <button id="zoomOutBtn">Zoom Out</button>
+                <button id="resetZoomBtn">Reset Zoom</button>
+            `;
+            const container = document.querySelector('.diagram-container');
+            if (!document.getElementById('zoomInBtn')) {
+                container.insertBefore(controls, document.getElementById('bpmnCanvas'));
+            }
+            document.getElementById('zoomInBtn').onclick = function() {
+                zoomLevel = Math.min(zoomLevel + 0.2, 4);
+                bpmnViewer.get('canvas').zoom(zoomLevel);
+            };
+            document.getElementById('zoomOutBtn').onclick = function() {
+                zoomLevel = Math.max(zoomLevel - 0.2, 0.2);
+                bpmnViewer.get('canvas').zoom(zoomLevel);
+            };
+            document.getElementById('resetZoomBtn').onclick = function() {
+                zoomLevel = 1;
+                bpmnViewer.get('canvas').zoom('fit-viewport');
+            };
 
-            // Местене с мишката
+
+             // Местене с мишката
             const canvas = bpmnViewer.get('canvas');
             const containerEl = document.getElementById('bpmnCanvas');
             let isPanning = false;
@@ -114,32 +128,22 @@
 
 
 
-            // Добавяне на контроли за мащабиране
-            let zoomLevel = 1;
-            const controls = document.createElement('div');
-            controls.style.textAlign = 'center';
-            controls.style.margin = '10px 0';
-            controls.innerHTML = `
-                <button id="zoomInBtn">Zoom In</button>
-                <button id="zoomOutBtn">Zoom Out</button>
-                <button id="resetZoomBtn">Reset Zoom</button>
-            `;
-            const container = document.querySelector('.diagram-container');
-            if (!document.getElementById('zoomInBtn')) {
-                container.insertBefore(controls, document.getElementById('bpmnCanvas'));
-            }
-            document.getElementById('zoomInBtn').onclick = function() {
-                zoomLevel = Math.min(zoomLevel + 0.2, 4);
-                bpmnViewer.get('canvas').zoom(zoomLevel);
-            };
-            document.getElementById('zoomOutBtn').onclick = function() {
-                zoomLevel = Math.max(zoomLevel - 0.2, 0.2);
-                bpmnViewer.get('canvas').zoom(zoomLevel);
-            };
-            document.getElementById('resetZoomBtn').onclick = function() {
-                zoomLevel = 1;
-                bpmnViewer.get('canvas').zoom('fit-viewport');
-            };
+
+    document.getElementById('bpmnUpload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            bpmnViewer.importXML(event.target.result, function(err) {
+                if (err) {
+                    alert('Error rendering BPMN diagram.');
+                } else {
+                    bpmnViewer.get('canvas').zoom('fit-viewport');
+                }
+            });
+
+
+           
         };
         reader.readAsText(file);
     });
