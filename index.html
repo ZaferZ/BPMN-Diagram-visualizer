@@ -44,7 +44,24 @@
 <script src="https://unpkg.com/bpmn-js@11.5.0/dist/bpmn-viewer.development.js"></script>
 <script>
     const bpmnViewer = new BpmnJS({ container: '#bpmnCanvas' });
-
+    // Load default BPMN diagram on page load
+    fetch('Diagram 1.bpmn')
+        .then(response => {
+            if (!response.ok) throw new Error('Diagram not found');
+            return response.text();
+        })
+        .then(xml => {
+            bpmnViewer.importXML(xml, function(err) {
+                if (err) {
+                    alert('Error rendering default BPMN diagram.');
+                } else {
+                    bpmnViewer.get('canvas').zoom('fit-viewport');
+                }
+            });
+        })
+        .catch(() => {
+            // No default diagram found, do nothing
+        });
     document.getElementById('bpmnUpload').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
